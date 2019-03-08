@@ -1,0 +1,256 @@
+body {
+    /*padding: 50px;*/
+    font-family: SFNSText, Helvetica Neue, sans-serif;
+    padding: 0;
+    margin: 0;
+    overflow: hidden;
+    font-size: 12px;
+}
+
+a {
+    color: #00B7FF;
+}
+
+#app {
+    padding: 10px;
+    overflow: hidden;
+    background: #ccc;
+    min-width: 600px;
+    min-height: 500px;
+    background: url("../images/canvas_bg.jpg") repeat;
+}
+
+#app .left, #app .center, #app .right {
+    float: left;
+    overflow: auto;
+
+}
+
+#app .left, #app .right {
+    background-color: #fff;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
+}
+
+#app .center {
+    /*border: #000 solid 1px;*/
+    /*background-color: white;*/
+    overflow: auto;
+    text-align: center;
+}
+
+#app .card {
+    background-color: white;
+    /*background: url("../images/card_bg.png") repeat white;*/
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
+    outline: none;
+    border: 2px #fff solid;
+}
+
+#app .card:focus {
+    border: 2px #6db7ff solid;
+}
+
+#app .pro-box {
+    border-top: #ccc 1px dashed;
+    user-select: none;
+}
+
+#app .pro-box:first-child {
+    border-top: none;
+}
+
+#app .pro-box .title {
+    /*fontawesome-free-5.6.3-weight: 300;*/
+    padding-top: 10px;
+    padding-left: 10px;
+}
+
+.pro-box .item {
+    display: table;
+    padding: 10px;
+    width: calc(100% - 20px);
+}
+
+.pro-box .item .key {
+    display: table-cell;
+    text-align: right;
+    font-weight: 300;
+    vertical-align: top;
+    /*color: #cfcfcf;*/
+}
+
+.pro-box .item .value {
+    display: table-cell;
+    width: 170px;
+}
+
+.pro-box .item .value input {
+    width: 50px;
+}
+
+
+.card .active {
+    /*border: #00B7FF 2px dashed;*/
+}
+
+.popup-menu {
+    padding: 3px 0px;
+    position: fixed;
+    background: #FFF;
+    border-radius: 4px;
+    border: 1px solid rgb(180, 180, 180);
+    -webkit-box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
+    -moz-box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    user-select: none;
+}
+
+.popup-menu .item {
+    padding: 5px 10px;
+    min-width: 100px;
+    width: 180px;
+    position: relative;
+    color: #333;
+    text-shadow: none;
+}
+
+.popup-menu .item .fa {
+    margin-right: 10px;
+}
+
+.popup-menu .item:hover {
+    background-color: #eee;
+}
+
+.popup-menu .split {
+    height: 0px;
+    border-top: #ccc solid 1px;
+    margin: 4px 0;
+}
+
+.disable * {
+    pointer-events: none;
+}
+
+.shape {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    user-select: none;
+    border: #000 2px solid;
+    /*overflow: hidden;*/
+    outline: none;
+}
+
+.shape *:not(.border,image) {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.shape .text {
+    overflow: hidden;
+    text-align: left;
+}
+
+.pro-box textarea {
+    width: 165px;
+    height: 175px;
+}
+
+.shape .image, .shape .image img {
+    height: 100%;
+    width: 100%;
+}
+
+.btn {
+    color: #fff;
+    background-color: #5cb85c;
+
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.42857143;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: middle;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    background-image: none;
+    border: 1px solid #4cae4c;
+    border-radius: 4px;
+    text-decoration: none;
+}
+
+.btn:hover {
+    color: #fff;
+    background-color: #449d44;
+    border-color: #398439;
+}
+
+.btn:active {
+    color: #fff;
+    background-color: #397b39;
+    border-color: #2d652d;
+}
+
+.toolbars .item {
+    text-align: center;
+}
+
+.toolbars .btn {
+    min-width: 130px;
+}
+
+.toolbars .btn i {
+    margin-right: 10px;
+}
+
+.node-list {
+    padding: 10px;
+}
+
+.node-list .node {
+    border-bottom: #ccc 1px dotted;
+    padding: 10px;
+
+}
+
+.node-list .node .text {
+    height: 18px;
+    overflow: hidden;
+}
+
+.node-list .node:hover {
+    background-color: #def2fe;
+}
+
+.node-list .active {
+    background-color: #acdcff;
+}
+.empty{
+    color: #666;
+}
+.image-box{
+    width: 80px;
+    height: 80px;
+    border: #ccc 1px solid;
+    cursor: pointer;
+    text-align: center;
+}
+.image-box .tips{
+    font-size: 12px;
+    color: #666;
+    line-height: 80px;
+}

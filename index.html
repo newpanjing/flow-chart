@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Graphic Design</title>
+    <link rel='stylesheet' href='./design/fontawesome-free-5.6.3/css/all.min.css'/>
+    <link rel='stylesheet' href='./design/css/style.css'/>
+    <link rel='stylesheet' href='./design/css/resize.css'/>
+    <meta charset="UTF-8"/>
+</head>
+<body>
+
+<div id="app" :style="{height:layout.height+'px'}">
+    <div class="left"
+         :style="{width:layout.left+'px',height:(layout.height-22)+'px','margin-right':layout.margin+'px'}">
+        <div class="pro-box">
+            <div class="title">属性设置</div>
+
+            <div class="item">
+                <div class="key">名称：</div>
+                <div class="value">
+                    <input style="width: 150px" type="input" v-model="card.name" placeholder="名称"/>
+                </div>
+            </div>
+
+            <div class="item">
+                <div class="key">宽度：</div>
+                <div class="value">
+                    <input type="input" v-model="card.width" placeholder="宽度"/>
+                </div>
+            </div>
+            <div class="item">
+                <div class="key">高度：</div>
+                <div class="value">
+                    <input type="input" v-model="card.height" placeholder="宽度"/>
+                </div>
+            </div>
+                <div class="key">背景：</div>
+                <div class="value">
+                    <div class="image-box">
+                        <span class="tips">点击上传</span>
+                    </div>
+
+                    <div class="item">
+                </div>
+            </div>
+        </div>
+
+
+        <div class="pro-box">
+            <div class="title">标签设置</div>
+            <div class="item">
+                <div class="key">名称：</div>
+                <div class="value">
+                    <input type="input"/>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="pro-box toolbars">
+            <div class="title">工具栏</div>
+            <div class="item">
+                <a href="javascript:;" @click="addShape(0)" class="btn"><i class="fas fa-font"></i><span>插入文本</span></a>
+            </div>
+            <div class="item">
+                <a href="javascript:;" @click="addShape(1)" class="btn"><i class="far fa-image"></i><span>插入图片</span></a>
+            </div>
+        </div>
+
+        <div class="pro-box">
+            <div class="title">元素列表</div>
+            <div class="node-list">
+                <div v-if="shapes.length==0" class="empty">没有任何元素</div>
+                <div v-for="item in shapes" :class="{node:true,active:item.active}" @click="selectShape($event,item)">
+                    <div v-if="item.type==1">
+                        <img :src="item.value" width="20" height="20"/><span>图片</span>
+                    </div>
+                    <div v-else class="text">{{item.value}}</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="center"
+         :style="{width:layout.center+'px',height:(layout.height-22)+'px','margin-right':layout.margin+'px'}">
+
+        <div @contextmenu.prevent.stop="showCardMenu($event)" v-selectarea="{aa:123}" tabindex="0" class="card"
+             :style="{width:card.width+'px',height:card.height+'px'}"
+             @mousedown="cardClick($event)" @keydown="shapeMove($event)" @keyup="cardKeyup($event)">
+
+            <!-- 各种元素 -->
+            <shape v-for="(shape,index) in shapes" :data-id="shape.id" :shape="shape"
+                   @contextmenu.prevent.stop.native="showContextmenu($event,shape)"
+                   @click.prevent.stop.native="selectShape($event,shape)"
+                   v-drag="{shape:shape}"></shape>
+
+
+        </div>
+
+    </div>
+    <div class="right" :style="{width:layout.right+'px',height:(layout.height-22)+'px'}">
+
+        <div :class="{disable:!isSelected}">
+            <div class="pro-box">
+                <div class="title">基本设置</div>
+                <div class="item">
+                    <div class="key">宽度：</div>
+                    <div class="value">
+                        <input type="number" v-model="selected.width" placeholder="宽度"/>
+                        <span>px</span>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="key">高度：</div>
+                    <div class="value">
+                        <input type="number" v-model="selected.height" placeholder="宽度"/>
+                        <span>px</span>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="key">类型：</div>
+                    <div class="value">
+                        <select v-model="selected.type">
+                            <option value="0">文本</option>
+                            <option value="1">图片</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div v-if="selected.type==1" class="item">
+                    <div class="key">图片：</div>
+                    <div class="value">
+                        <img :src="selected.value" width="50" height="50"/>
+                    </div>
+                </div>
+                <div v-else class="item">
+                    <div class="key">文本：</div>
+                    <div class="value">
+                        <textarea v-model="selected.value" placeholder=""></textarea>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <div class="pro-box">
+                <div class="title">坐标设置</div>
+                <div class="item">
+                    <div class="key">X：</div>
+                    <div class="value">
+                        <input type="number" v-model="selected.left"/>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="key">Y：</div>
+                    <div class="value">
+                        <input type="number" v-model="selected.top"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pro-box">
+                <div class="title">边框效果</div>
+                <div class="item">
+                    <div class="key">线宽：</div>
+                    <div class="value">
+                        <input type="number" v-model="selected.borderWidth" placeholder="线宽"/>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="key">颜色：</div>
+                    <div class="value">
+                        <input type="color" v-model="selected.borderColor" placeholder="颜色"/>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pro-box">
+                <div class="title">字体效果</div>
+
+                <div class="item">
+                    <div class="key">颜色：</div>
+                    <div class="value">
+                        <input type="color" v-model="selected.fontColor" placeholder="颜色"/>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="key">大小：</div>
+                    <div class="value">
+                        <input type="number" v-model="selected.fontSize" placeholder="大小"/>
+                    </div>
+                </div>
+                <div class="item">
+                    <div class="key">样式：</div>
+                    <div class="value">
+                        <select>
+                            <option>正常</option>
+                            <option>粗体</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div v-if="popup.show" :style="{top:popup.top+'px',left:popup.left+'px'}" class="popup-menu">
+        <div v-for="item in popup.menus" v-if="item.show">
+            <div v-if="item.split" class="split"></div>
+            <div v-else class="item" @click="item.handler()"><span :class="'fa '+item.icon"></span>{{item.text}}</div>
+        </div>
+    </div>
+
+    <div v-if="cardPopup.show" :style="{top:cardPopup.top+'px',left:cardPopup.left+'px'}" class="popup-menu">
+        <div v-for="item in cardPopup.menus">
+            <div v-if="item.split" class="split"></div>
+            <div v-else class="item" @click="item.handler()"><span :class="'fa '+item.icon"></span>{{item.text}}</div>
+        </div>
+    </div>
+
+</div>
+</body>
+
+<script type="text/javascript" src="./design/js/index.js"></script>
+</html>
