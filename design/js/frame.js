@@ -3,11 +3,14 @@
  */
 function frameInit() {
 
+    initResize();
     initSelectArea();
     initDrag();
     componentInit();
     initApp();
     initLayout();
+
+    initJsPlumb();
 
     document.addEventListener('click', function () {
 
@@ -15,14 +18,15 @@ function frameInit() {
         app.cardPopup.show = false;
     });
 
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 2; i++) {
 
         pushShape({
-            left: i * 3 * 10,
-            top: i * 3 * 10,
+            left: i * 3 * 20,
+            top: i * 3 * 20,
             width: 100,
-            height: 20,
-            value: new Date().getTime(),
+            height: 28,
+            // value: new Date().getTime(),
+            value: '开始',
             type: 0,
         })
     }
@@ -41,18 +45,34 @@ function pushShape(data) {
     }
     if (!data.type) {
         data.type = 0;
+        data.background = '#ffb952';
     }
+
+    if (data.type == 1) {
+        data.fontColor = 'black';
+        data.padding = '0px';
+    }
+
+    if (data.type == 2) {
+        data.background = '#68b8f7';
+        data.borderRadius = '0';
+    }
+
     data.selectArea = false;
 
     var defaultData = {
         borderWidth: 0,
-        borderColor: '#000',
+        borderColor: '#000000',
         borderStyle: 'solid',
+        borderRadius: '20',
+        padding: '10',
 
-        fontColor: '#000',
-        fontSize: 12,
+        fontColor: '#FFFFFF',
+        fontSize: 15,
         fontStyle: '',
         value: '文本标签',
+        height: 28
+        , background: 'green'
     }
     for (var key in defaultData) {
         if (!data[key]) {
@@ -61,6 +81,9 @@ function pushShape(data) {
     }
     app.shapes.push(data);
     data.index = app.shapes.length;
+    setTimeout(() => {
+        endpoint(data.id, data.type)
+    }, 100)
 }
 
 /**
@@ -113,6 +136,22 @@ function initSelectArea() {
 
                 }
             }).register(el);
+        }
+    });
+}
+
+function initResize() {
+    Vue.directive('resize', {
+        inserted(dv, binding) {
+            //注册拉伸
+            var resize = new Resize({
+                onResize: function (data) {
+                    for (var key in data) {
+                        binding.value.shape[key] = data[key];
+                    }
+                }
+            });
+            resize.register(dv);
         }
     });
 }
@@ -179,15 +218,15 @@ function initDrag() {
             })
             drag.register(dv);
 
-            //注册拉伸
-            var resize = new Resize({
-                onResize: function (data) {
-                    for (var key in data) {
-                        binding.value.shape[key] = data[key];
-                    }
-                }
-            });
-            resize.register(dv);
+            // //注册拉伸
+            // var resize = new Resize({
+            //     onResize: function (data) {
+            //         for (var key in data) {
+            //             binding.value.shape[key] = data[key];
+            //         }
+            //     }
+            // });
+            // resize.register(dv);
         }
     });
 
@@ -222,8 +261,8 @@ function initApp() {
                 height: getSize().width
             },
             card: {
-                width: 500,
-                height: 700,
+                width: 900,
+                height: 800,
                 name: ''
             },
             selected: {},
@@ -240,7 +279,7 @@ function initApp() {
                         app.addShape(0, app.mousePos.x, app.mousePos.y);
                     }
                 }, {
-                    text: '插入图片',
+                    text: '插入判断',
                     icon: 'far fa-image',
                     handler: function () {
                         app.addShape(1, app.mousePos.x, app.mousePos.y);
@@ -248,16 +287,10 @@ function initApp() {
                 }, {
                     split: true
                 }, {
-                    text: '全选',
+                    text: '插入结果',
                     icon: 'fa-check',
                     handler: function () {
-                        app.selectAll();
-                    }
-                }, {
-                    text: '取消全选',
-                    icon: 'fa-times',
-                    handler: function () {
-                        app.unselectAll();
+                        app.addShape(2, app.mousePos.x, app.mousePos.y);
                     }
                 }]
             },
@@ -402,13 +435,13 @@ function initApp() {
                 x = x || 10;
                 y = y || 10;
                 var value = '文本';
-                var width = 60, height = 20;
+                var width = 60, height = 28;
 
                 //默认图片
                 if (type == 1) {
-                    value = './design/images/image.jpg';
-                    width = 120;
-                    height = 120;
+                    value = '判断';
+                    width = 200;
+                    height = 135;
                 }
 
                 var data = {
@@ -459,4 +492,119 @@ function getSize() {
         width: document.documentElement.clientWidth || document.body.clientWidth,
         height: document.documentElement.clientHeight || document.body.clientHeight
     };
+}
+
+function initJsPlumb() {
+    jsPlumb.importDefaults({
+        DragOptions: { cursor: 'pointer', zIndex: 2000 },
+        ConnectionOverlays: [
+            [ "Arrow", {
+                location: 1,
+                visible:true,
+                width:11,
+                length:11,
+                id:"ARROW",
+                events:{
+                    click:function() { alert("you clicked on the arrow overlay")}
+                }
+            } ],
+            [ "Label", {
+                location: 0.1,
+                id: "label",
+                cssClass: "aLabel",
+                events:{
+                    tap:function() { alert("hey"); }
+                }
+            }]
+        ]
+    });
+    jsPlumb.setContainer('card-wrapper');
+}
+
+
+function endpoint(id, type) {
+
+    var common = {
+        isSource: true,
+        isTarget: true,
+        connector: 'Flowchart',
+        endpoint: ['Dot', {
+            radius: 5,
+            fill: '#ff5722'
+        }],
+        // enabled:true,
+        cssClass:'',
+        maxConnections: -1,
+        paintStyle: {
+            fill: '#0096f2',
+            outlineStroke: '#FFF',
+            // strokeWidth: 1,
+            // width:3
+        },
+        hoverPaintStyle: {
+            outlineStroke: 'lightblue'
+        },
+        connectorStyle: {
+            outlineStroke: '#0096f2',
+            lineWidth: 1,
+            joinstyle: "round",
+            strokeStyle: "#FFF"
+        },
+        // connectorHoverStyle: {
+        //     strokeWidth: 0.2
+        // },
+        connectorOverlays: [
+
+            [ "Arrow", {
+                location: 1,
+                visible:true,
+                width:11,
+                length:11,
+                id:"ARROW",
+                events:{
+                    click:function() { alert("you clicked on the arrow overlay")}
+                }
+            } ],
+            [ "Label", {
+                location: 0.1,
+                id: "label",
+                cssClass: "aLabel",
+                events:{
+                    tap:function() { alert("hey"); }
+                }
+            }]
+        ]
+        //不允许回环自己
+        , allowLoopback: false
+        //如果只想产生一个端点，而不是多个端点
+        //uniqueEndpoint:true
+        ,overlays:[
+            "Arrow",
+            // [ "Label", { label:"1", location:1, id:"",cssClass:'endpoint-label-lkiarest' } ]
+        ],
+
+    }
+
+    //启用锚点
+    jsPlumb.addEndpoint(id, {
+        anchors: ['Top', [0.5, 0, 0, -10]]
+        //不允许回环自己
+        , allowLoopback: false,
+    }, common);
+    jsPlumb.addEndpoint(id, {
+        anchor: 'Bottom'
+    }, common);
+
+    if (type == 1) {
+        jsPlumb.addEndpoint(id, {
+            anchor: 'Right'
+        }, common);
+        jsPlumb.addEndpoint(id, {
+            anchor: 'Left'
+        }, common);
+    }
+
+    //启用拖拽
+    jsPlumb.draggable(id)
+
 }
