@@ -9,8 +9,8 @@ function componentInit() {
 
 
             var mappers = {
-                numbers: ['left', 'top', 'width', 'height', 'borderWidth', 'fontSize'],
-                strings: ['active', 'borderColor', 'borderStyle', 'fontColor', 'fontStyle', 'index']
+                numbers: ['left', 'top', 'width', 'height', 'borderWidth', 'fontSize', 'borderRadius', 'padding'],
+                strings: ['active', 'borderColor', 'borderStyle', 'fontColor', 'background', 'fontStyle', 'index']
             }
             var alias = {
                 fontColor: 'color',
@@ -18,7 +18,22 @@ function componentInit() {
             };
 
             return {
+                width() {
+                    return shape.width
+                },
+                height() {
+                    return shape.height
+                },
                 data: shape,
+
+                value() {
+
+                    var value = shape.value;
+                    //换行改为br
+                    //空格改为占位符
+                    value = value.replace(/ /g, '&nbsp;').replace(/\r|\n/g, '<br/>');
+                    return value;
+                },
                 style() {
                     var json = {};
                     for (var key in shape) {
@@ -37,13 +52,36 @@ function componentInit() {
                             json[key] = value;
                         }
                     }
-                    return json;
+
+                    //判断显示菱形
+                    if (json.background && shape.type == 1) {
+                        var bg = Diamond(shape.width, shape.height);
+                        json.background = `url("${bg}") no-repeat;`
+                    }
+
+                    var str = '';
+                    for (var i in json) {
+                        str += `${i}:${json[i]};`
+                    }
+                    return str;
                 }
             }
         },
-        watch: {},
-        methods: {},
+        watch: {
+            editor(val, old) {
+                console.log('aa:' + val)
+            }
+        },
+        methods: {
+            blur: function (e, data) {
+                //失去焦点就让编辑禁用
+                data.editor = false;
+            },
+            dblclick:function (e,data) {
+                data.editor = true;
+            }
+        },
         computed: {},
-        template: `<div :class="{shape:true,active:data.active}" :style="style()"><div v-if="data.type==0" class="text" type="text">{{data.value}}</div><div v-if="data.type==1" class="image"><img :src="data.value"/></div></div>`
+        template: `<div :class="{shape:true,active:data.active,basic:data.type!=1}" :style="style()"><div tabindex="1" autofocus @dblclick="dblclick($event,shape)" @blur="blur($event,shape)" :contenteditable="shape.editor" v-focus="shape.editor" class="card-shape-text" :style="{width:width()+'px',height:height()+'px'}" v-html="value()"></div></div>`
     });
 }

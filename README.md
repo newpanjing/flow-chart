@@ -1,10 +1,10 @@
-# js+vue 自由图形画板
+# js+vue flow chart 在线流程图
 
 原生js+vue实现 图形画板，和windows图标一样，可以自由的拖动、拖拉改变大小。
 以及和windows桌面一样 有选区，可以选中若干个元素一起拖动。
 
 在线预览地址：
-[https://newpanjing.github.io/graphic-design/](https://newpanjing.github.io/graphic-design/)
+[https://newpanjing.github.io/flow-chart/](https://newpanjing.github.io/flow-chart/)
 
 ## 源码启动预览
 + 启动:

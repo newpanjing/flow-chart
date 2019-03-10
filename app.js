@@ -10,6 +10,7 @@ var fs = require('fs');
 
 http.createServer(function (req, res, next) {
     var url = req.url;
+    console.log(`${req.method} ${req.url}`)
     if (url == '/') {
         url = 'index.html';
     }
@@ -39,6 +40,8 @@ http.createServer(function (req, res, next) {
     //
     // res.end(url);
 
-}).on('error',function (err) {
+}).on('error', function (err) {
     console.error(err);
 }).listen(3000);
+
+console.log('listen http://127.0.0.1:3000');

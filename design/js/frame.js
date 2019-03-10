@@ -6,11 +6,14 @@ function frameInit() {
     initResize();
     initSelectArea();
     initDrag();
+    initFocus();
+
     componentInit();
     initApp();
     initLayout();
 
     initJsPlumb();
+
 
     document.addEventListener('click', function () {
 
@@ -40,12 +43,18 @@ function pushShape(data) {
 
     //一个随机不重复的id，用于当前判断
     data.id = getShapeId();
+
+    //默认不能编辑
+    data.editor = false;
+
     if (!data.active) {
         data.active = false;
     }
     if (!data.type) {
         data.type = 0;
         data.background = '#ffb952';
+        data.borderWidth = 2;
+        data.borderColor = 'black';
     }
 
     if (data.type == 1) {
@@ -54,8 +63,10 @@ function pushShape(data) {
     }
 
     if (data.type == 2) {
-        data.background = '#68b8f7';
+        data.background = '#5a95c9';
         data.borderRadius = '0';
+        data.borderWidth = 2;
+        data.borderColor = 'black';
     }
 
     data.selectArea = false;
@@ -68,7 +79,7 @@ function pushShape(data) {
         padding: '10',
 
         fontColor: '#FFFFFF',
-        fontSize: 15,
+        fontSize: 12,
         fontStyle: '',
         value: '文本标签',
         height: 28
@@ -92,6 +103,17 @@ function pushShape(data) {
  */
 function getShapeId() {
     return new Date().getTime() + "" + Math.floor(Math.random() * 89999 + 10000);
+}
+
+function initFocus() {
+    Vue.directive('focus', {
+        inserted(el, binding) {
+            console.log(binding.value)
+            if (binding) {
+                el.focus();
+            }
+        }
+    });
 }
 
 function initSelectArea() {
@@ -149,6 +171,9 @@ function initResize() {
                     for (var key in data) {
                         binding.value.shape[key] = data[key];
                     }
+                    // console.log(this)
+                    // jsp.repaint(this);
+                    jsp.repaintEverything();
                 }
             });
             resize.register(dv);
@@ -214,6 +239,9 @@ function initDrag() {
                             item.top = data.y + item.oldTop;
                         }
                     });
+
+                    //重绘
+                    jsp.repaintEverything();
                 }
             })
             drag.register(dv);
@@ -236,6 +264,7 @@ function moveLeft(val) {
     app.shapes.forEach(item => {
         if (item.active) {
             item.left += val;
+            jsp.repaintEverything();
         }
     });
 }
@@ -244,6 +273,7 @@ function moveTop(val) {
     app.shapes.forEach(item => {
         if (item.active) {
             item.top += val;
+            jsp.repaintEverything();
         }
     });
 }
@@ -256,13 +286,13 @@ function initApp() {
                 left: 250,
                 right: 250,
                 center: 200,
-                margin: 30,
+                margin: 0,
                 width: getSize().width,
                 height: getSize().width
             },
             card: {
-                width: 900,
-                height: 800,
+                width: 5000,
+                height: 5000,
                 name: ''
             },
             selected: {},
@@ -273,22 +303,28 @@ function initApp() {
                 left: 0,
                 top: 0,
                 menus: [{
-                    text: '插入文本',
+                    text: '重绘界面',
+                    icon: 'fas fa-refresh',
+                    handler: function () {
+                        jsp.repaintEverything();
+                    }
+                }, {
+                    text: '插入开始',
                     icon: 'fas fa-font',
                     handler: function () {
                         app.addShape(0, app.mousePos.x, app.mousePos.y);
                     }
                 }, {
+                    split: true
+                }, {
                     text: '插入判断',
-                    icon: 'far fa-image',
+                    icon: 'far fa-diamond',
                     handler: function () {
                         app.addShape(1, app.mousePos.x, app.mousePos.y);
                     }
                 }, {
-                    split: true
-                }, {
                     text: '插入结果',
-                    icon: 'fa-check',
+                    icon: 'far fa-rectangle-wide',
                     handler: function () {
                         app.addShape(2, app.mousePos.x, app.mousePos.y);
                     }
@@ -303,19 +339,23 @@ function initApp() {
                     icon: 'fa-unlink',
                     show: true,
                     handler: function () {
-                        if (confirm('您确定要删除选中的元素吗？')) {
-                            app.shapes = app.shapes.filter(item => {
-                                console.log(item)
-                                return !item.active
-                            });
+                        var data = app.popup.data;
 
-                            //  for (var i = 0; i < app.shapes.length; i++) {
-                            //     if (app.shapes[i].active) {
-                            //         app.shapes.splice(i--, 1);
-                            //     }
-                            // }
+                        console.log(app.popup.data)
+                        if (confirm('您确定要删除吗？')) {
+                            console.log('删除的id：' + data.id);
+                            app.shapes = app.shapes.filter(t => t.id != data.id);
 
-                            app.selected = {};
+
+                            //删除元素有关的连接线
+                            // jsp.remove(data.id);
+                            jsp.removeAllEndpoints(data.id);
+                            jsp.repaintEverything();
+
+                            if (data.active) {
+                                app.selected = {};
+                            }
+                            // app.$forceUpdate();
                         }
 
                     }
@@ -366,6 +406,7 @@ function initApp() {
                 this.isSelected = true;
             },
             showContextmenu: function (e, data) {
+                console.log(data.id)
                 app.popup.left = e.clientX;
                 app.popup.top = e.clientY;
                 app.popup.show = true;
@@ -422,12 +463,20 @@ function initApp() {
                     9: () => app.isShiftDown = true,
                     8: function () {
 
-                        app.popup.del();
+                        // app.popup.del();
                     },
 
                 };
                 var fun = keymaps[code];
                 if (fun) {
+
+                    if (e && e.stopPropagation) {
+                        //W3C取消冒泡事件
+                        e.stopPropagation();
+                    } else {
+                        //IE取消冒泡事件
+                        window.event.cancelBubble = true;
+                    }
                     fun.call(data, index);
                 }
             },
@@ -440,8 +489,8 @@ function initApp() {
                 //默认图片
                 if (type == 1) {
                     value = '判断';
-                    width = 200;
-                    height = 135;
+                    width = 145;
+                    height = 75;
                 }
 
                 var data = {
@@ -476,7 +525,7 @@ function initLayout() {
         //20=2个框的外边距
         //20=内边距
 
-        app.layout.center = size.width - app.layout.left - app.layout.right - 22 - (app.layout.margin * 2);
+        app.layout.center = size.width - app.layout.left - (app.layout.margin * 2);
 
     }
 
@@ -495,30 +544,66 @@ function getSize() {
 }
 
 function initJsPlumb() {
-    jsPlumb.importDefaults({
-        DragOptions: { cursor: 'pointer', zIndex: 2000 },
-        ConnectionOverlays: [
-            [ "Arrow", {
-                location: 1,
-                visible:true,
-                width:11,
-                length:11,
-                id:"ARROW",
-                events:{
-                    click:function() { alert("you clicked on the arrow overlay")}
-                }
-            } ],
-            [ "Label", {
-                location: 0.1,
-                id: "label",
-                cssClass: "aLabel",
-                events:{
-                    tap:function() { alert("hey"); }
-                }
-            }]
-        ]
+    jsPlumb.ready(function () {
+        // jsPlumb.setSuspendDrawing(true);
+        var instance = window.jsp = jsPlumb.getInstance({
+            // default drag options
+            DragOptions: {cursor: 'pointer', zIndex: 2000},
+            // the overlays to decorate each connection with.  note that the label overlay uses a function to generate the label text; in this
+            // case it returns the 'labelText' member that we set on each connection in the 'init' method below.
+            ConnectionOverlays: [
+                ["Arrow", {
+                    location: 1,
+                    visible: true,
+                    width: 11,
+                    length: 11,
+                    id: "ARROW",
+                    events: {
+                        click: function () {
+                            alert("you clicked on the arrow overlay")
+                        }
+                    }
+                }],
+                ["Label", {
+                    location: 0.8,
+                    id: "label",
+                    cssClass: "aLabel",
+                    events: {
+                        tap: function () {
+                            val = prompt('输入该节点描述：')
+                            this.setLabel(val)
+                            console.log('hey')
+                        }
+                    }
+                }]
+            ],
+            Container: "card-wrapper"
+        });
+
+        var basicType = {
+            connector: "StateMachine",
+            paintStyle: {stroke: "red", strokeWidth: 4},
+            hoverPaintStyle: {stroke: "blue"},
+            overlays: [
+                "Arrow"
+            ]
+        };
+        instance.registerConnectionType("basic", basicType);
+
+        instance.bind("connection", function (connInfo, originalEvent) {
+            // init(connInfo.connection);
+            connInfo.connection.getOverlay("label").setLabel('标签');
+            // console.log(arguments)
+        });
+
+        // 单点击了连接线,
+        jsp.bind('dblclick', function (conn, originalEvent) {
+            if (confirm('确定删除所点击的链接吗？')) {
+                jsp.deleteConnection(conn)
+            }
+        });
     });
-    jsPlumb.setContainer('card-wrapper');
+    // jsPlumb.setContainer('card-wrapper');
 }
 
 
@@ -533,78 +618,66 @@ function endpoint(id, type) {
             fill: '#ff5722'
         }],
         // enabled:true,
-        cssClass:'',
+        cssClass: '',
         maxConnections: -1,
         paintStyle: {
-            fill: '#0096f2',
-            outlineStroke: '#FFF',
+            radius: 3,
+            fill: '#FFFFFF',
+            stroke: "#7AB02C",
+
             // strokeWidth: 1,
             // width:3
         },
         hoverPaintStyle: {
-            outlineStroke: 'lightblue'
+            fill: "#216477",
+            stroke: "#216477"
         },
         connectorStyle: {
-            outlineStroke: '#0096f2',
-            lineWidth: 1,
-            joinstyle: "round",
-            strokeStyle: "#FFF"
+            strokeWidth: 2,
+            stroke: "#216477",
+            outlineWidth: 3,
+            outlineStroke: "white"
         },
+        connectorHoverStyle: {
+            strokeWidth: 3,
+            stroke: "#216477",
+            outlineWidth: 5,
+            outlineStroke: "white"
+        },
+        dragOptions: {},
         // connectorHoverStyle: {
         //     strokeWidth: 0.2
         // },
-        connectorOverlays: [
-
-            [ "Arrow", {
-                location: 1,
-                visible:true,
-                width:11,
-                length:11,
-                id:"ARROW",
-                events:{
-                    click:function() { alert("you clicked on the arrow overlay")}
-                }
-            } ],
-            [ "Label", {
-                location: 0.1,
-                id: "label",
-                cssClass: "aLabel",
-                events:{
-                    tap:function() { alert("hey"); }
-                }
-            }]
-        ]
         //不允许回环自己
-        , allowLoopback: false
+        allowLoopback: false
         //如果只想产生一个端点，而不是多个端点
         //uniqueEndpoint:true
-        ,overlays:[
+        , overlays: [
             "Arrow",
             // [ "Label", { label:"1", location:1, id:"",cssClass:'endpoint-label-lkiarest' } ]
         ],
 
     }
+    /*
 
-    //启用锚点
-    jsPlumb.addEndpoint(id, {
-        anchors: ['Top', [0.5, 0, 0, -10]]
-        //不允许回环自己
-        , allowLoopback: false,
-    }, common);
-    jsPlumb.addEndpoint(id, {
-        anchor: 'Bottom'
-    }, common);
+    anchor:"Continuous"
+    //or
+    anchor:["Continuous",{faces:["top","left"]}]
 
-    if (type == 1) {
-        jsPlumb.addEndpoint(id, {
-            anchor: 'Right'
-        }, common);
-        jsPlumb.addEndpoint(id, {
-            anchor: 'Left'
-        }, common);
-    }
+    faces同样有四个值：top,left,right,bottom。
 
-    //启用拖拽
-    jsPlumb.draggable(id)
+    将CSS类与Anchors相关联
+    var ep = jsPlumb.addEndpoint("ele1",{
+      anchor:[0,0,0,0,0,0,"test"]
+    });
 
+    * */
+    var array = ['Top', 'Bottom', 'Right', 'Left'];
+    array.forEach(val => {
+        jsp.addEndpoint(id, {
+            anchor: val
+        }, common)
+    });
+
+    // jsp.draggable(id);
 }

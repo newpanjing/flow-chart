@@ -4,6 +4,7 @@ function SelectArea(options) {
 
         el.addEventListener('mousedown', function (e) {
 
+            //TODO 需要考虑x，y滚动条的距离
 
             if (e.button != 0) {
                 return;

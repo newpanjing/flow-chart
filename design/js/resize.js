@@ -2,7 +2,12 @@ function Resize(options) {
 
     this.register = function (el) {
 
-        var directions = ['nw', 'w', 'ws', 's', 'se', 'e', 'ne', 'n']
+        //TODO 需要考虑x，y滚动条的距离
+
+        var directions = ['nw', 'ws', 'se', 'ne']
+        //, 'w', 's', 'e', 'n'
+        // var lineTo = ['w', 's', 'e', 'n'];
+
         //增加元素
         directions.forEach(str => {
 
@@ -25,6 +30,10 @@ function Resize(options) {
         //注册事件
 
         directions.forEach(str => {
+            //lineTo 不注册事件
+            // if(lineTo.indexOf(str)!=-1){
+            //     return;
+            // }
             var isDown = false;
             var obj = el.querySelector("." + str);
             obj.onmousedown = function (e) {
@@ -47,7 +56,7 @@ function Resize(options) {
                 };
 
                 if (options && options.onBegin) {
-                    options.onBegin.call(el,data)
+                    options.onBegin.call(el, data)
                 }
 
                 var isResize = true;
@@ -104,12 +113,12 @@ function Resize(options) {
 
         function setLeft(l) {
 
-            options.onResize({left: l});
+            options.onResize.call(el, {left: l});
             el.style.left = l + 'px';
         }
 
         function setTop(t) {
-            options.onResize({top: t});
+            options.onResize.call(el, {top: t});
             el.style.top = t + 'px';
         }
 
@@ -117,7 +126,7 @@ function Resize(options) {
             if (w < 20) {
                 w = 20;
             }
-            options.onResize({width: w});
+            options.onResize.call(el, {width: w});
             el.style.width = w + 'px';
         }
 
@@ -126,7 +135,7 @@ function Resize(options) {
             if (h < 20) {
                 h = 20;
             }
-            options.onResize({height: h});
+            options.onResize.call(el, {height: h});
             el.style.height = h + 'px';
         }
 

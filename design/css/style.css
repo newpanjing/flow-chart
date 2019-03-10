@@ -12,7 +12,7 @@ a {
 }
 
 #app {
-    padding: 10px;
+    /*padding: 10px;*/
     overflow: hidden;
     background: #ccc;
     min-width: 600px;
@@ -39,8 +39,7 @@ a {
 }
 
 #app .card {
-    background-color: white;
-    /*background: url("../images/card_bg.png") repeat white;*/
+    background: url("../images/grid.png") repeat white;
     margin-left: auto;
     margin-right: auto;
     position: relative;
@@ -156,6 +155,9 @@ a {
     overflow: hidden;
     text-align: left;
 }
+.shape .border{
+    pointer-events: none;
+}
 
 .pro-box textarea {
     width: 165px;
@@ -239,18 +241,52 @@ a {
 .node-list .active {
     background-color: #acdcff;
 }
-.empty{
+
+.empty {
     color: #666;
 }
-.image-box{
+
+.image-box {
     width: 80px;
     height: 80px;
     border: #ccc 1px solid;
     cursor: pointer;
     text-align: center;
 }
-.image-box .tips{
+
+.image-box .tips {
     font-size: 12px;
     color: #666;
     line-height: 80px;
 }
+
+.card-shape-text{
+    vertical-align: middle;
+    display: table-cell;
+    overflow: hidden;
+}
+.jtk-endpoint{
+    z-index: 9999;
+}
+
+.aLabel{
+    background-color: white;
+    /*opacity: .9;*/
+    /*border: #ccc dashed 1px;*/
+    /*padding: 2px;*/
+    font-size: 12px;
+    content: '文本';
+    user-select: none;
+}
+
+.basic .border{
+    top: -3px;
+    right: -3px;
+    bottom: -3px;
+    left: -3px;
+}
+
+.basic .nw{left: -6px; top: -6px; cursor: nw-resize}
+.basic .ws{left: -6px; bottom: -6px; cursor: sw-resize}
+.basic .se{right: -6px; bottom: -6px; cursor: se-resize}
+.basic .ne{right: -6px; top: -6px; cursor: ne-resize}
