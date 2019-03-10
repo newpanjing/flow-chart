@@ -17,7 +17,7 @@
     ````
 
 ## 预览
-![](https://raw.githubusercontent.com/newpanjing/graphic-design/master/images/preview.png)
+![](https://raw.githubusercontent.com/newpanjing/flow-chart/master/images/preview.png)
 ## js 插件
 
 + drag.js
