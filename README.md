@@ -4,7 +4,7 @@
 以及和windows桌面一样 有选区，可以选中若干个元素一起拖动。
 
 在线预览地址：
-[https://newpanjing.github.io/flow-chart/](https://newpanjing.github.io/flow-chart/)
+[https://newpanjing.github.io/flow-chart/index.html](https://newpanjing.github.io/flow-chart/)
 
 ## 源码启动预览
 + 启动:

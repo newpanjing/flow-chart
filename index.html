@@ -47,12 +47,17 @@
         <div v-selectarea @contextmenu.prevent.stop="showCardMenu($event)"
              tabindex="0" class="card"
              :style="{width:card.width+'px',height:card.height+'px'}"
-             @mousedown="cardClick($event)" @keydown.prevent="shapeMove($event)" @keyup="cardKeyup($event)" id="card-wrapper">
+             @mousedown="cardClick($event)" @keyup="cardKeyup($event)" id="card-wrapper">
 
             <!--v-drag="{shape:shape}"-->
             <!-- 各种元素 -->
             <shape v-resize="{shape:shape}" v-drag="{shape:shape}"
-                    v-for="(shape,index) in shapes" :id="shape.id" :data-id="shape.id" :shape="shape" :key="shape.id"
+                    v-for="(shape,index) in shapes"
+                   :id="shape.id"
+                   :data-id="shape.id"
+                   :shape="shape"
+                   :key="shape.id"
+                   @shapemove="shapeMove($event)"
                    @contextmenu.prevent.stop.native="showContextmenu($event,shape)"
                    @click.prevent.stop.native="selectShape($event,shape)"
             />
