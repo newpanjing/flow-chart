@@ -6,9 +6,10 @@ function SelectArea(options) {
 
             //TODO 需要考虑x，y滚动条的距离
 
-            if (e.button != 0) {
+            if (e.button != 0 || e.target != this) {
                 return;
             }
+
 
             var x = e.clientX;
             var y = e.clientY;
@@ -18,12 +19,23 @@ function SelectArea(options) {
 
             var tempX = x - e.target.offsetLeft;
             var tempY = y - e.target.offsetTop;
+
+
             var isDown = true;
 
             x = tempX;
             y = tempY;
 
-            if(options && options.onBegin){
+
+            //考虑滚动条
+            //有两种情况 一种是自己的滚动条，一种是父容器的滚动条
+            sx = e.target.parentElement.scrollLeft;
+            sy = e.target.parentElement.scrollTop;
+
+            x += sx;
+            y += sy;
+
+            if (options && options.onBegin) {
                 options.onBegin.call(el, e);
             }
             var select = document.createElement('div');
@@ -31,6 +43,7 @@ function SelectArea(options) {
             select.style.position = 'absolute';
             select.style.border = '1px #4a98be solid';
             select.style.backgroundColor = 'rgba(127,214,255,0.3)';
+            select.style.zIndex = '99999999';
 
             el.appendChild(select);
 
@@ -44,12 +57,10 @@ function SelectArea(options) {
 
 
                 if (w < 0) {
-                    x = tempX + w;
-
+                    x = tempX + w + sx;
                 }
-
                 if (h < 0) {
-                    y = tempY + h;
+                    y = tempY + h + sy;
                 }
 
                 var width = Math.abs(w);
@@ -79,7 +90,7 @@ function SelectArea(options) {
             window.onmouseup = function (ee) {
                 isDown = false;
                 select.remove();
-                if(options && options.onEnd){
+                if (options && options.onEnd) {
                     options.onEnd.call(el, e);
                 }
                 return false;

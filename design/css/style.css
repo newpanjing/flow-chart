@@ -105,7 +105,7 @@ a {
     -webkit-box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
     -moz-box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
     box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.3);
-    z-index: 999;
+    z-index: 10000;
     user-select: none;
 }
 
@@ -155,7 +155,8 @@ a {
     overflow: hidden;
     text-align: left;
 }
-.shape .border{
+
+.shape .border {
     pointer-events: none;
 }
 
@@ -260,16 +261,17 @@ a {
     line-height: 80px;
 }
 
-.card-shape-text{
+.card-shape-text {
     vertical-align: middle;
     display: table-cell;
     overflow: hidden;
 }
-.jtk-endpoint{
+
+.jtk-endpoint {
     z-index: 9999;
 }
 
-.aLabel{
+.aLabel {
     background-color: white;
     /*opacity: .9;*/
     /*border: #ccc dashed 1px;*/
@@ -279,14 +281,45 @@ a {
     user-select: none;
 }
 
-.basic .border{
+.basic .border {
     top: -3px;
     right: -3px;
     bottom: -3px;
     left: -3px;
 }
 
-.basic .nw{left: -6px; top: -6px; cursor: nw-resize}
-.basic .ws{left: -6px; bottom: -6px; cursor: sw-resize}
-.basic .se{right: -6px; bottom: -6px; cursor: se-resize}
-.basic .ne{right: -6px; top: -6px; cursor: ne-resize}
+.basic .nw {
+    left: -6px;
+    top: -6px;
+    cursor: nw-resize
+}
+
+.basic .ws {
+    left: -6px;
+    bottom: -6px;
+    cursor: sw-resize
+}
+
+.basic .se {
+    right: -6px;
+    bottom: -6px;
+    cursor: se-resize
+}
+
+.basic .ne {
+    right: -6px;
+    top: -6px;
+    cursor: ne-resize
+}
+.shape-input {
+    background: transparent;
+    height: 100%;
+    width: 100%;
+    border: none;
+    resize: none;
+    outline: none;
+    color: black;
+    text-align: center;
+    display:inline-block;
+    vertical-align: middle
+}

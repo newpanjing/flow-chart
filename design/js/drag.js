@@ -11,12 +11,15 @@ function Drag(options) {
     this.register = function (el) {
 
         el.addEventListener('mousedown', function (e) {
-
+            
             if (e.button != 0) {
                 //屏蔽左键以外的按键
                 return;
             }
 
+            if(e.target.tagName=='TEXTAREA'){
+                return false;
+            }
 
             //获取x坐标和y坐标
             var x = e.clientX;

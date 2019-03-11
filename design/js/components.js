@@ -25,7 +25,9 @@ function componentInit() {
                     return shape.height
                 },
                 data: shape,
-
+                live() {
+                    return shape;
+                },
                 value() {
 
                     var value = shape.value;
@@ -67,15 +69,13 @@ function componentInit() {
                 }
             }
         },
-        watch: {
-            editor(val, old) {
-                console.log('aa:' + val)
-            }
-        },
+        watch: {},
         methods: {
             blur: function (e, data) {
                 //失去焦点就让编辑禁用
                 data.editor = false;
+                //通知刷新
+                this.$forceUpdate();
             },
             dblclick: function (e, data) {
                 data.editor = true;
@@ -83,11 +83,13 @@ function componentInit() {
             move: function (e) {
                 // console.log(e.code)
                 //通知
-                this.$emit('shapemove',e);
+                this.$emit('shapemove', e);
+                // e.preventDefault()
+                // e.stopPropagation()
 
             }
         },
         computed: {},
-        template: `<div @keydown.prevent="move($event)" tabindex="1" :class="{shape:true,active:data.active,basic:data.type!=1}" :style="style()"><div @dblclick="dblclick($event,shape)" @blur="blur($event,shape)" :contenteditable="shape.editor" v-focus="shape.editor" class="card-shape-text" :style="{width:width()+'px',height:height()+'px'}" v-html="value()"></div></div>`
+        template: '#shape-template'
     });
 }

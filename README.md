@@ -5,6 +5,12 @@
 
 在线预览地址：
 [https://newpanjing.github.io/flow-chart/index.html](https://newpanjing.github.io/flow-chart/)
+## 特色功能
++ 键盘位移
++ 双击编辑
++ 拖拽
++ 改变大小
++ 单选/多选
 
 ## 源码启动预览
 + 启动:

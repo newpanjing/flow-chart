@@ -42,7 +42,9 @@ function pushShape(data) {
     //0=文本，1=图片
 
     //一个随机不重复的id，用于当前判断
-    data.id = getShapeId();
+    if (!data.id) {
+        data.id = getShapeId();
+    }
 
     //默认不能编辑
     data.editor = false;
@@ -50,8 +52,9 @@ function pushShape(data) {
     if (!data.active) {
         data.active = false;
     }
-    if (!data.type) {
-        data.type = 0;
+    data.type = data.type || 0;
+
+    if (data.type == 0) {
         data.background = '#ffb952';
         data.borderWidth = 2;
         data.borderColor = 'black';
@@ -78,12 +81,14 @@ function pushShape(data) {
         borderRadius: '20',
         padding: '10',
 
-        fontColor: '#FFFFFF',
+        fontColor: '#000000',
         fontSize: 12,
         fontStyle: '',
         value: '文本标签',
         height: 28
-        , background: 'green'
+        , background: 'green',
+        //端点
+        endpoints: []
     }
     for (var key in defaultData) {
         if (!data[key]) {
@@ -304,13 +309,13 @@ function initApp() {
                 top: 0,
                 menus: [{
                     text: '重绘界面',
-                    icon: 'fas fa-refresh',
+                    // icon: 'fas fa-sync-alt',
                     handler: function () {
                         jsp.repaintEverything();
                     }
                 }, {
                     text: '插入开始',
-                    icon: 'fas fa-font',
+                    icon: '',
                     handler: function () {
                         app.addShape(0, app.mousePos.x, app.mousePos.y);
                     }
@@ -324,9 +329,15 @@ function initApp() {
                     }
                 }, {
                     text: '插入结果',
-                    icon: 'far fa-rectangle-wide',
+                    icon: 'far fa-rectangle-landscape',
                     handler: function () {
                         app.addShape(2, app.mousePos.x, app.mousePos.y);
+                    }
+                }, {
+                    text: '全部删除',
+                    icon: '',
+                    handler: function () {
+                        deleteAll();
                     }
                 }]
             },
@@ -341,27 +352,37 @@ function initApp() {
                     handler: function () {
                         var data = app.popup.data;
 
-                        console.log(app.popup.data)
-                        if (confirm('您确定要删除吗？')) {
-                            console.log('删除的id：' + data.id);
-                            app.shapes = app.shapes.filter(t => t.id != data.id);
+                        x0p('Confirmation', '确定要该元素吗？', 'warning').then(function (e) {
+                            if (e.button == 'warning') {
+                                app.shapes = app.shapes.filter(t => {
 
+                                    return t.id != data.id
+                                });
 
-                            //删除元素有关的连接线
-                            // jsp.remove(data.id);
-                            jsp.removeAllEndpoints(data.id);
-                            jsp.repaintEverything();
+                                //删除元素有关的连接线
+                                // jsp.remove(data.id);
+                                jsp.removeAllEndpoints(data.id);
+                                jsp.repaintEverything();
 
-                            if (data.active) {
-                                app.selected = {};
+                                if (data.active) {
+                                    app.selected = {};
+                                }
                             }
-                            // app.$forceUpdate();
-                        }
+                        });
+
 
                     }
                 }, {
                     split: true,
                     show: true
+                }, {
+                    text: '编辑',
+                    icon: 'fa-edit',
+                    show: true,
+                    handler: function () {
+                        var data = app.popup.data;
+                        data.editor = true;
+                    }
                 }]
             },
             isShiftDown: false
@@ -378,6 +399,11 @@ function initApp() {
 
                 app.isSelected = sed;
             }
+        },
+        created: function () {
+            console.log('ok')
+            console.log(this.shapes)
+
         },
         methods: {
             cardClick: function (e) {
@@ -406,7 +432,6 @@ function initApp() {
                 this.isSelected = true;
             },
             showContextmenu: function (e, data) {
-                console.log(data.id)
                 app.popup.left = e.clientX;
                 app.popup.top = e.clientY;
                 app.popup.show = true;
@@ -492,10 +517,13 @@ function initApp() {
                     width = 145;
                     height = 75;
                 }
+                //获取滚动条位置
+
+                var sx = document.getElementById('center').scrollLeft, sy = document.getElementById('center').scrollTop;
 
                 var data = {
-                    left: x,
-                    top: y,
+                    left: x + sx,
+                    top: y + sy,
                     width: width,
                     height: height,
                     value: value,
@@ -570,9 +598,24 @@ function initJsPlumb() {
                     cssClass: "aLabel",
                     events: {
                         tap: function () {
-                            val = prompt('输入该节点描述：')
-                            this.setLabel(val)
-                            console.log('hey')
+                            var connId = this.component.id;
+
+                            console.log(connId)
+                            var label = this;
+                            var val = label.getLabel();
+                            if (!val || val == '') {
+                                val = '标签';
+                            }
+
+                            x0p('输入描述', null, 'input').then(
+                                function (data) {
+
+                                    if (data.button == 'info') {
+                                        val = data.text;
+                                        label.setLabel(val);
+                                    }
+                                });
+
                         }
                     }
                 }]
@@ -591,73 +634,88 @@ function initJsPlumb() {
         instance.registerConnectionType("basic", basicType);
 
         instance.bind("connection", function (connInfo, originalEvent) {
-            // init(connInfo.connection);
-            connInfo.connection.getOverlay("label").setLabel('标签');
-            // console.log(arguments)
+            var label = connInfo.connection.getOverlay("label");
+            label.setLabel('标签');
         });
+        instance.bind("Endpoint", function () {
+            console.log(arguments);
+        })
 
         // 单点击了连接线,
         jsp.bind('dblclick', function (conn, originalEvent) {
-            if (confirm('确定删除所点击的链接吗？')) {
-                jsp.deleteConnection(conn)
-            }
+            console.log('删除链接：' + conn.id)
+            x0p('Confirmation', '确定要删除连接线吗？', 'warning').then(function (e) {
+                if (e.button == 'warning') {
+
+                    jsp.deleteConnection(conn)
+                }
+            });
+
         });
     });
-    // jsPlumb.setContainer('card-wrapper');
 }
 
+function deleteAll() {
+    app.shapes.forEach(item => {
+        jsp.removeAllEndpoints(item.id)
+    });
+    jsp.repaintEverything();
+    app.shapes = [];
+}
+
+var common = {
+    isSource: true,
+    isTarget: true,
+    connector: 'Flowchart',
+    endpoint: ['Dot', {
+        radius: 5,
+        fill: '#ff5722'
+    }],
+    // enabled:true,
+    cssClass: '',
+    maxConnections: -1,
+    paintStyle: {
+        radius: 3,
+        fill: '#FFFFFF',
+        stroke: "#7AB02C",
+
+        // strokeWidth: 1,
+        // width:3
+    },
+    hoverPaintStyle: {
+        fill: "#216477",
+        stroke: "#216477"
+    },
+    connectorStyle: {
+        strokeWidth: 2,
+        stroke: "#216477",
+        outlineWidth: 3,
+        outlineStroke: "white"
+    },
+    connectorHoverStyle: {
+        strokeWidth: 3,
+        stroke: "#216477",
+        outlineWidth: 5,
+        outlineStroke: "white"
+    },
+    dragOptions: {},
+    // connectorHoverStyle: {
+    //     strokeWidth: 0.2
+    // },
+    //不允许回环自己
+    allowLoopback: false
+    //如果只想产生一个端点，而不是多个端点
+    //uniqueEndpoint:true
+    , overlays: [
+        "Arrow",
+        // [ "Label", { label:"1", location:1, id:"",cssClass:'endpoint-label-lkiarest' } ]
+    ],
+
+}
 
 function endpoint(id, type) {
 
-    var common = {
-        isSource: true,
-        isTarget: true,
-        connector: 'Flowchart',
-        endpoint: ['Dot', {
-            radius: 5,
-            fill: '#ff5722'
-        }],
-        // enabled:true,
-        cssClass: '',
-        maxConnections: -1,
-        paintStyle: {
-            radius: 3,
-            fill: '#FFFFFF',
-            stroke: "#7AB02C",
 
-            // strokeWidth: 1,
-            // width:3
-        },
-        hoverPaintStyle: {
-            fill: "#216477",
-            stroke: "#216477"
-        },
-        connectorStyle: {
-            strokeWidth: 2,
-            stroke: "#216477",
-            outlineWidth: 3,
-            outlineStroke: "white"
-        },
-        connectorHoverStyle: {
-            strokeWidth: 3,
-            stroke: "#216477",
-            outlineWidth: 5,
-            outlineStroke: "white"
-        },
-        dragOptions: {},
-        // connectorHoverStyle: {
-        //     strokeWidth: 0.2
-        // },
-        //不允许回环自己
-        allowLoopback: false
-        //如果只想产生一个端点，而不是多个端点
-        //uniqueEndpoint:true
-        , overlays: [
-            "Arrow",
-            // [ "Label", { label:"1", location:1, id:"",cssClass:'endpoint-label-lkiarest' } ]
-        ],
-
-    }
     /*
 
     anchor:"Continuous"
@@ -674,10 +732,177 @@ function endpoint(id, type) {
     * */
     var array = ['Top', 'Bottom', 'Right', 'Left'];
     array.forEach(val => {
+
         jsp.addEndpoint(id, {
             anchor: val
         }, common)
+    }, function () {
+        console.log('ok')
     });
 
     // jsp.draggable(id);
 }
+
+function getData() {
+
+    var json = {};
+    //读取endpoints 信息
+    var data = {};
+    var shapes = [];
+    json.shapes = shapes;
+
+    app.shapes.forEach(item => {
+
+        //太多无用的字段，只挑选需要的
+        var fields = ['id', 'left', 'top', 'width', 'height', 'type', 'value'];
+        var temp = {};
+        fields.forEach(key => {
+            temp[key] = item[key];
+        });
+        temp.endpoints = []
+        data[temp.id] = temp;
+    });
+
+    //保存endpoints
+    jsp.getConnections().forEach(item => {
+        data[item.sourceId].endpoints.push({
+            targetId: item.targetId,
+            label: item.getOverlay("label").getLabel(),
+            anchors: [item.endpoints[0].anchor.type, item.endpoints[1].anchor.type]
+        })
+
+    });
+    //转为json数组
+    for (var i in data) {
+        shapes.push(data[i]);
+    }
+    json.card = app.card;
+    return json;
+}
+
+function loadChart(app, data) {
+
+    deleteAll();
+    app.card = data.card;
+    var shapes = data.shapes;
+    app.$nextTick(function () {
+        shapes.forEach(item => {
+            pushShape(item);
+        });
+    });
+    app.$nextTick(function () {
+        shapes.forEach(item => {
+            jsp.makeSource(item.id, common);
+        });
+        var endpoints = [];
+
+        shapes.forEach(item => {
+            item.endpoints.forEach(p => {
+                endpoints.push({
+                    source: item.id,
+                    target: p.targetId,
+                    anchors: p.anchors,
+                    tips: p.label
+                    // label: p.label,
+                    // overlays: [
+                    //     "Arrow",
+                    //     ["Label", {label: p.l, location: 1, id: "label", cssClass: 'aLabel'}]
+                    // ],
+                });
+            });
+        });
+        setTimeout(function () {
+
+            endpoints.forEach(item => {
+                var conn = jsp.connect(item, common);
+                conn.getOverlay('label').setLabel(item.tips);
+            });
+        }, 100)
+
+    })
+}
+
+var ddd = {
+    "shapes": [
+        {
+            "id": "155226886759344950",
+            "left": 403,
+            "top": 70,
+            "width": 100,
+            "height": 28,
+            "type": 0,
+            "value": "开始22",
+            "endpoints": [
+                {
+                    "targetId": "155226887217748113",
+                    "label": "123",
+                    "anchors": [
+                        "Right",
+                        "Top"
+                    ]
+                },
+                {
+                    "targetId": "155226887217748113",
+                    "label": "111",
+                    "anchors": [
+                        "Bottom",
+                        "Top"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "155226887217748113",
+            "left": 645,
+            "top": 179,
+            "width": 145,
+            "height": 75,
+            "type": 1,
+            "value": "判断111",
+            "endpoints": [
+                {
+                    "targetId": "155226887627288485",
+                    "label": "555",
+                    "anchors": [
+                        "Bottom",
+                        "Top"
+                    ]
+                },
+                {
+                    "targetId": "155226888658553342",
+                    "label": "444",
+                    "anchors": [
+                        "Left",
+                        "Top"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "155226887627288485",
+            "left": 674,
+            "top": 334,
+            "width": 60,
+            "height": 28,
+            "type": 2,
+            "value": "文本222",
+            "endpoints": []
+        },
+        {
+            "id": "155226888658553342",
+            "left": 480,
+            "top": 324,
+            "width": 60,
+            "height": 28,
+            "type": 2,
+            "value": "文本111",
+            "endpoints": []
+        }
+    ],
+    "card": {
+        "width": 5000,
+        "height": 5000,
+        "name": "客户咨询流程图"
+    }
+}
+
